@@ -1,0 +1,11 @@
+import mongoose from 'mongoose';
+
+const commentSchema = new mongoose.Schema({
+  user: { type: String, required: true },
+  movie: { type: String, required: true },
+  content: { type: String, required: true },
+  date: { type: Date, default: Date.now },
+});
+
+const Comment = mongoose.model('Comment', commentSchema);
+export default Comment;
