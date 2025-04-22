@@ -1,10 +1,34 @@
 import mongoose from 'mongoose';
 
 const commentSchema = new mongoose.Schema({
-  user: { type: String, required: true },
-  movie: { type: String, required: true },
-  content: { type: String, required: true },
-  date: { type: Date, default: Date.now },
+  movieId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Movie',
+    required: true
+  },
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  userName: {
+    type: String,
+    required: true
+  },
+  content: {
+    type: String,
+    required: true
+  },
+  likes: {
+    type: Number,
+    default: 0
+  },
+  isEdited: {
+    type: Boolean,
+    default: false
+  }
+}, {
+  timestamps: true
 });
 
 const Comment = mongoose.model('Comment', commentSchema);

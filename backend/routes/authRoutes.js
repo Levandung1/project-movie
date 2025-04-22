@@ -1,15 +1,11 @@
 import express from 'express';
-import User from '../models/User.js';
+import { register, login, getCurrentUser } from '../controllers/authController.js';
+import { verifyToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
-router.get('/', async (req, res) => {
-  try {
-    const users = await User.find({}, '-password'); // bỏ mật khẩu
-    res.json(users);
-  } catch (error) {
-    res.status(500).json({ message: 'Lỗi khi lấy danh sách người dùng' });
-  }
-});
+router.post('/register', register);
+router.post('/login', login);
+router.get('/me', verifyToken, getCurrentUser);
 
 export default router;

@@ -9,10 +9,8 @@ const Home = () => {
     <>
       <Navbar />
       <Hero />
-      <MovieSlider title="Vi bạn đã xem Ngôi trường xác sống" endpoint="/movies/recommended" />
-      <MovieSlider title="Tiếp tục xem của bạn" endpoint="/movies/continue" />
-      <MovieSlider title="Phim trẻ em & Gia đình" endpoint="/movies/kids" />
-      <MovieSlider title="Phim hành động nổi bật" endpoint="/movies/action" />
+      <MovieSlider title="Thịnh Hành" endpoint="" />
+  
       <Footer />
     </>
   );

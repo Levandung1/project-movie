@@ -1,23 +1,112 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Container, FormContainer, Title, Input, Button, Link } from '../styles/AuthStyles';
+import styled from 'styled-components';
+
+const Container = styled.div`
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+    url('https://assets.nflxext.com/ffe/siteui/vlv3/c0a32732-b033-43b3-be2a-8fee037a6146/2fe6e3c0-5613-4625-a0c1-3d605effd10b/VN-vi-20210607-popsignuptwoweeks-perspective_alpha_website_large.jpg');
+  background-size: cover;
+`;
+
+const FormContainer = styled.div`
+  background: rgba(0, 0, 0, 0.75);
+  padding: 60px 68px 40px;
+  border-radius: 4px;
+  width: 100%;
+  max-width: 450px;
+`;
+
+const Title = styled.h1`
+  color: white;
+  font-size: 32px;
+  margin-bottom: 28px;
+`;
+
+const Form = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+`;
+
+const Input = styled.input`
+  padding: 16px 20px;
+  border-radius: 4px;
+  border: none;
+  background: #333;
+  color: white;
+  font-size: 16px;
+
+  &::placeholder {
+    color: #8c8c8c;
+  }
+`;
+
+const Button = styled.button`
+  padding: 16px;
+  border-radius: 4px;
+  border: none;
+  background: #e50914;
+  color: white;
+  font-size: 16px;
+  font-weight: 500;
+  margin-top: 24px;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: #f40612;
+  }
+`;
+
+const Error = styled.div`
+  color: #e87c03;
+  margin-bottom: 16px;
+`;
+
+const SignupText = styled.p`
+  color: #737373;
+  margin-top: 16px;
+
+  a {
+    color: white;
+    text-decoration: none;
+    margin-left: 4px;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+`;
 
 const Login = () => {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/login', { email, password });
-      localStorage.setItem('token', res.data.token);
-      localStorage.setItem('user', JSON.stringify(res.data.user)); // lưu user
-      alert('Đăng nhập thành công!');
-      navigate('/', { replace: true });
+      const response = await axios.post('http://localhost:5000/api/auth/login', {
+        username,
+        password
+      });
+
+      // Lưu token vào localStorage
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data));
+
+      // Chuyển hướng về trang chủ
+      navigate('/');
     } catch (error) {
-      alert('Sai email hoặc mật khẩu');
+      setError(error.response?.data?.message || 'Đăng nhập thất bại');
     }
   };
 
@@ -25,14 +114,28 @@ const Login = () => {
     <Container>
       <FormContainer>
         <Title>Đăng nhập</Title>
-        <form onSubmit={handleLogin}>
-          <Input type="email" placeholder="Email" onChange={e => setEmail(e.target.value)} />
-          <Input type="password" placeholder="Mật khẩu" onChange={e => setPassword(e.target.value)} />
+        {error && <Error>{error}</Error>}
+        <Form onSubmit={handleSubmit}>
+          <Input
+            type="text"
+            placeholder="Tên đăng nhập"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
+          <Input
+            type="password"
+            placeholder="Mật khẩu"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
           <Button type="submit">Đăng nhập</Button>
-        </form>
-        <Link onClick={() => navigate('/register')}>
-          Chưa có tài khoản? Đăng ký ngay.
-        </Link>
+        </Form>
+        <SignupText>
+          Chưa có tài khoản?
+          <Link to="/register">Đăng ký ngay</Link>
+        </SignupText>
       </FormContainer>
     </Container>
   );

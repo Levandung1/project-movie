@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import axios from 'axios';
+
+const API_URL = 'http://localhost:5000/api/movies';
 
 const Container = styled.div`
-  color: black; /* ✅ đảm bảo toàn bộ chữ mặc định là đen */
+  color: black;
 `;
 
 const TitleBar = styled.div`
@@ -29,20 +32,20 @@ const Table = styled.table`
   background-color: white;
   border-radius: 8px;
   overflow: hidden;
-  color: black; /* ✅ chữ trong bảng là đen */
+  color: black;
 `;
 
 const Th = styled.th`
   background-color: #f2f2f2;
   padding: 12px;
   text-align: left;
-  color: black; /* ✅ chữ trong header là đen */
+  color: black;
 `;
 
 const Td = styled.td`
   padding: 12px;
   border-bottom: 1px solid #ddd;
-  color: black; /* ✅ chữ trong ô là đen */
+  color: black;
 `;
 
 const ActionButton = styled.button`
@@ -51,7 +54,7 @@ const ActionButton = styled.button`
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  background-color: ${props => props.edit ? '#007bff' : '#dc3545'};
+  background-color: ${props => (props.edit ? '#007bff' : '#dc3545')};
   color: white;
 `;
 
@@ -68,8 +71,11 @@ const ModalBox = styled.div`
   background: white;
   padding: 30px;
   border-radius: 8px;
-  width: 400px;
-  color: black; /* ✅ chữ trong modal là đen */
+  width: 600px;
+  max-width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  color: black;
 `;
 
 const ModalTitle = styled.h3`
@@ -88,6 +94,17 @@ const Label = styled.label`
 const Input = styled.input`
   width: 100%;
   padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+`;
+
+const TextArea = styled.textarea`
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  resize: vertical;
+  min-height: 100px;
 `;
 
 const ModalButtonGroup = styled.div`
@@ -102,26 +119,60 @@ const ModalButton = styled.button`
   border: none;
   border-radius: 4px;
   color: white;
-  background-color: ${props => props.cancel ? '#6c757d' : '#e50914'};
+  cursor: pointer;
+  background-color: ${props => (props.cancel ? '#6c757d' : '#e50914')};
 `;
 
 const ManageMovies = () => {
-  const [movies, setMovies] = useState([
-    {
-      id: 1,
-      title: 'Batman Begins',
-      year: 2005,
-      genre: 'Hành động',
-      views: 12000,
-    },
-  ]);
-
+  const [movies, setMovies] = useState([]);
   const [isModalOpen, setModalOpen] = useState(false);
   const [editingMovie, setEditingMovie] = useState(null);
-  const [formData, setFormData] = useState({ title: '', year: '', genre: '', views: '' });
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    year: '',
+    genre: '',
+    director: '',
+    actors: '',
+    country: '',
+    duration: '',
+    rating: '',
+    views: '',
+    posterUrl: '',
+    backdropUrl: '',
+    trailerUrl: ''
+  });
+
+  // Load movies on mount
+  useEffect(() => {
+    fetchMovies();
+  }, []);
+
+  const fetchMovies = async () => {
+    try {
+      const res = await axios.get(API_URL);
+      setMovies(res.data);
+    } catch (err) {
+      console.error('Lỗi khi tải phim:', err);
+    }
+  };
 
   const openAddModal = () => {
-    setFormData({ title: '', year: '', genre: '', views: '' });
+    setFormData({
+      title: '',
+      description: '',
+      year: '',
+      genre: '',
+      director: '',
+      actors: '',
+      country: '',
+      duration: '',
+      rating: '',
+      views: '',
+      posterUrl: '',
+      backdropUrl: '',
+      trailerUrl: ''
+    });
     setEditingMovie(null);
     setModalOpen(true);
   };
@@ -134,7 +185,21 @@ const ManageMovies = () => {
 
   const closeModal = () => {
     setModalOpen(false);
-    setFormData({ title: '', year: '', genre: '', views: '' });
+    setFormData({
+      title: '',
+      description: '',
+      year: '',
+      genre: '',
+      director: '',
+      actors: '',
+      country: '',
+      duration: '',
+      rating: '',
+      views: '',
+      posterUrl: '',
+      backdropUrl: '',
+      trailerUrl: ''
+    });
   };
 
   const handleInputChange = (e) => {
@@ -144,22 +209,29 @@ const ManageMovies = () => {
     }));
   };
 
-  const handleSubmit = () => {
-    if (editingMovie) {
-      setMovies(prev =>
-        prev.map(m => (m.id === editingMovie.id ? { ...formData, id: editingMovie.id } : m))
-      );
-    } else {
-      const newMovie = { ...formData, id: Date.now() };
-      setMovies(prev => [...prev, newMovie]);
+  const handleSubmit = async () => {
+    try {
+      if (editingMovie) {
+        await axios.put(`${API_URL}/${editingMovie._id}`, formData);
+      } else {
+        await axios.post(API_URL, formData);
+      }
+      await fetchMovies();
+      closeModal();
+    } catch (err) {
+      console.error('Lỗi khi lưu phim:', err);
     }
-    closeModal();
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     const confirm = window.confirm('Bạn có chắc muốn xoá phim này?');
     if (confirm) {
-      setMovies(prev => prev.filter(m => m.id !== id));
+      try {
+        await axios.delete(`${API_URL}/${id}`);
+        fetchMovies();
+      } catch (err) {
+        console.error('Lỗi khi xoá phim:', err);
+      }
     }
   };
 
@@ -174,6 +246,7 @@ const ManageMovies = () => {
         <thead>
           <tr>
             <Th>Tiêu đề</Th>
+            <Th>Đạo diễn</Th>
             <Th>Năm</Th>
             <Th>Thể loại</Th>
             <Th>Lượt xem</Th>
@@ -182,14 +255,15 @@ const ManageMovies = () => {
         </thead>
         <tbody>
           {movies.map(movie => (
-            <tr key={movie.id}>
+            <tr key={movie._id}>
               <Td>{movie.title}</Td>
+              <Td>{movie.director}</Td>
               <Td>{movie.year}</Td>
               <Td>{movie.genre}</Td>
               <Td>{movie.views}</Td>
               <Td>
                 <ActionButton edit onClick={() => openEditModal(movie)}>Sửa</ActionButton>
-                <ActionButton onClick={() => handleDelete(movie.id)}>Xoá</ActionButton>
+                <ActionButton onClick={() => handleDelete(movie._id)}>Xoá</ActionButton>
               </Td>
             </tr>
           ))}
@@ -205,16 +279,71 @@ const ManageMovies = () => {
               <Input name="title" value={formData.title} onChange={handleInputChange} />
             </FormGroup>
             <FormGroup>
+              <Label>Mô tả</Label>
+              <TextArea
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
+                rows="3"
+              />
+            </FormGroup>
+            <FormGroup>
               <Label>Năm</Label>
-              <Input name="year" value={formData.year} onChange={handleInputChange} />
+              <Input 
+                name="year" 
+                value={formData.year} 
+                onChange={handleInputChange}
+                type="number" 
+              />
             </FormGroup>
             <FormGroup>
               <Label>Thể loại</Label>
               <Input name="genre" value={formData.genre} onChange={handleInputChange} />
             </FormGroup>
             <FormGroup>
-              <Label>Lượt xem</Label>
-              <Input name="views" value={formData.views} onChange={handleInputChange} />
+              <Label>Đạo diễn</Label>
+              <Input name="director" value={formData.director} onChange={handleInputChange} />
+            </FormGroup>
+            <FormGroup>
+              <Label>Diễn viên</Label>
+              <Input name="actors" value={formData.actors} onChange={handleInputChange} />
+            </FormGroup>
+            <FormGroup>
+              <Label>Quốc gia</Label>
+              <Input name="country" value={formData.country} onChange={handleInputChange} />
+            </FormGroup>
+            <FormGroup>
+              <Label>Thời lượng (phút)</Label>
+              <Input 
+                name="duration" 
+                value={formData.duration} 
+                onChange={handleInputChange}
+                type="number"
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label>Đánh giá</Label>
+              <Input 
+                name="rating" 
+                value={formData.rating} 
+                onChange={handleInputChange}
+                type="number"
+                step="0.1"
+                min="0"
+                max="10"
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label>Poster URL</Label>
+              <Input name="posterUrl" value={formData.posterUrl} onChange={handleInputChange} />
+            </FormGroup>
+            <FormGroup>
+              <Label>Backdrop URL</Label>
+              <Input name="backdropUrl" value={formData.backdropUrl} onChange={handleInputChange} />
+            </FormGroup>
+            <FormGroup>
+              <Label>Trailer URL</Label>
+              <Input name="trailerUrl" value={formData.trailerUrl} onChange={handleInputChange} />
             </FormGroup>
             <ModalButtonGroup>
               <ModalButton cancel onClick={closeModal}>Huỷ</ModalButton>

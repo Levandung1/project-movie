@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Search from './pages/Search';
+import MovieDetail from './pages/MovieDetail';
 import GlobalStyles from './styles/GlobalStyles'; // ✅ Import thêm dòng này
 
 import AdminLayout from './admin/AdminLayout';
@@ -21,6 +23,8 @@ function App() {
       <GlobalStyles /> {/* ✅ Kích hoạt style toàn cục */}
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/search" element={<Search />} />
+        <Route path="/movie/:id" element={<MovieDetail />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
