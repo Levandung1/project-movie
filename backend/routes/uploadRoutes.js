@@ -1,14 +1,13 @@
 import express from 'express';
 import { uploadFile, deleteFile } from '../controllers/uploadController.js';
 import upload from '../middleware/upload.js';
-import { verifyToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Upload file (ảnh hoặc video)
-router.post('/upload', verifyToken, upload.single('file'), uploadFile);
+// Route để upload file
+router.post('/', upload.single('file'), uploadFile);
 
 // Xóa file
-router.delete('/delete/:fileUrl', verifyToken, deleteFile);
+router.delete('/:fileUrl', deleteFile);
 
 export default router; 

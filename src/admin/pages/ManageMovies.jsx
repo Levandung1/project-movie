@@ -140,7 +140,8 @@ const ManageMovies = () => {
     views: '',
     posterUrl: '',
     backdropUrl: '',
-    trailerUrl: ''
+    trailerUrl: '',
+    trailerFile: null
   });
 
   // Load movies on mount
@@ -171,7 +172,8 @@ const ManageMovies = () => {
       views: '',
       posterUrl: '',
       backdropUrl: '',
-      trailerUrl: ''
+      trailerUrl: '',
+      trailerFile: null
     });
     setEditingMovie(null);
     setModalOpen(true);
@@ -198,7 +200,8 @@ const ManageMovies = () => {
       views: '',
       posterUrl: '',
       backdropUrl: '',
-      trailerUrl: ''
+      trailerUrl: '',
+      trailerFile: null
     });
   };
 
@@ -207,6 +210,35 @@ const ManageMovies = () => {
       ...prev,
       [e.target.name]: e.target.value,
     }));
+  };
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      console.log('Uploading file:', file.name);
+      const response = await axios.post('http://localhost:5000/api/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      console.log('Upload response:', response.data);
+      if (response.data.fileUrl) {
+        setFormData(prev => ({
+          ...prev,
+          trailerUrl: `http://localhost:5000${response.data.fileUrl}`,
+          trailerFile: file
+        }));
+      }
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      alert('Lỗi khi upload video!');
+    }
   };
 
   const handleSubmit = async () => {
@@ -342,8 +374,21 @@ const ManageMovies = () => {
               <Input name="backdropUrl" value={formData.backdropUrl} onChange={handleInputChange} />
             </FormGroup>
             <FormGroup>
-              <Label>Trailer URL</Label>
-              <Input name="trailerUrl" value={formData.trailerUrl} onChange={handleInputChange} />
+              <Label>Trailer</Label>
+              <Input 
+                type="file" 
+                accept="video/*"
+                onChange={handleFileChange}
+              />
+              {formData.trailerUrl && (
+                <div style={{ marginTop: '10px' }}>
+                  <video 
+                    src={formData.trailerUrl} 
+                    controls 
+                    style={{ maxWidth: '100%', maxHeight: '200px' }}
+                  />
+                </div>
+              )}
             </FormGroup>
             <ModalButtonGroup>
               <ModalButton cancel onClick={closeModal}>Huỷ</ModalButton>

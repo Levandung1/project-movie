@@ -16,7 +16,7 @@ import ManageWatchHistory from './admin/pages/ManageWatchHistory';
 import ManageCategories from './admin/pages/ManageCategories';
 import AdminLogin from './admin/pages/AdminLogin';
 import RequireAdmin from './admin/RequireAdmin';
-
+import WatchHistory from './pages/WatchHistory';
 function App() {
   return (
     <Router>
@@ -26,6 +26,7 @@ function App() {
         <Route path="/search" element={<Search />} />
         <Route path="/movie/:id" element={<MovieDetail />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/watch-history" element={<WatchHistory />} />
         <Route path="/register" element={<Register />} />
 
         <Route path="/admin/login" element={<AdminLogin />} />

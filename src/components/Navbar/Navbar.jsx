@@ -26,6 +26,15 @@ const Menu = styled.ul`
   display: flex;
   gap: 25px;
   color: white;
+  
+  li {
+    cursor: pointer;
+    transition: color 0.3s ease;
+    
+    &:hover {
+      color: #e50914;
+    }
+  }
 `;
 
 const AuthButtons = styled.div`
@@ -59,11 +68,11 @@ const Navbar = () => {
     <Container>
       <Logo>MY MOVIE</Logo>
       <Menu>
-        <li>Trang chủ</li>
-        <li>Series</li>
-        <li>Phim</li>
-        <li>Mới & Phổ biến</li>
-        <li>Danh sách của tôi</li>
+        <li onClick={() => navigate("/")}>Trang chủ</li>
+        <li onClick={() => navigate("/series")}>Series</li>
+        <li onClick={() => navigate("/movies")}>Phim</li>
+        <li onClick={() => navigate("/new")}>Mới & Phổ biến</li>
+        {user && <li onClick={() => navigate("/watch-history")}>Lịch sử xem phim</li>}
       </Menu>
       <AuthButtons>
         {user ? (

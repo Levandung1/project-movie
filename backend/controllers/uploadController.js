@@ -1,25 +1,25 @@
 import path from 'path';
 import fs from 'fs';
+import upload from '../middleware/upload.js';
 
 export const uploadFile = async (req, res) => {
   try {
+    console.log('Upload request received');
+    console.log('Request file:', req.file);
+    console.log('Request body:', req.body);
+
     if (!req.file) {
-      return res.status(400).json({ message: 'No file uploaded' });
+      console.log('No file in request');
+      return res.status(400).json({ message: 'Không có file được tải lên' });
     }
 
-    // Tạo URL cho file đã upload
-    const fileUrl = `/uploads/${req.file.path.split('uploads/')[1]}`;
-
-    res.status(200).json({
-      message: 'File uploaded successfully',
-      fileUrl: fileUrl,
-      fileName: req.file.filename,
-      fileType: req.file.mimetype,
-      fileSize: req.file.size
-    });
+    // Trả về URL của file đã upload
+    const fileUrl = `/uploads/${req.file.filename}`;
+    console.log('File uploaded successfully:', fileUrl);
+    res.status(200).json({ fileUrl });
   } catch (error) {
-    console.error('Upload error:', error);
-    res.status(500).json({ message: 'Error uploading file' });
+    console.error('Error uploading file:', error);
+    res.status(500).json({ message: 'Lỗi khi tải lên file', error: error.message });
   }
 };
 

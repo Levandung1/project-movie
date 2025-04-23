@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import styled from 'styled-components';
 import Navbar from '../components/Navbar/Navbar';
@@ -207,14 +207,62 @@ const UserInfo = styled.div`
   width: 200px;
 `;
 
+const VideoModal = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+`;
+
+const VideoContainer = styled.div`
+  width: 80%;
+  max-width: 1200px;
+  position: relative;
+`;
+
+const CloseButton = styled.button`
+  position: absolute;
+  top: -40px;
+  right: 0;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 5px 10px;
+  
+  &:hover {
+    color: #e50914;
+  }
+`;
+
+const VideoPlayer = styled.video`
+  width: 100%;
+  height: auto;
+  max-height: 80vh;
+`;
+
 const MovieDetail = () => {
   const { id } = useParams();
+  const location = useLocation();
   const [movie, setMovie] = useState(null);
   const [loading, setLoading] = useState(true);
   const [comments, setComments] = useState([]);
   const [commentText, setCommentText] = useState('');
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
+  const [showVideo, setShowVideo] = useState(false);
+  const [lastWatchedTime, setLastWatchedTime] = useState(location.state?.lastWatchedTime || 0);
+  const [autoPlay, setAutoPlay] = useState(location.state?.autoPlay || false);
+  const [videoRef, setVideoRef] = useState(null);
+  const [isTimeSet, setIsTimeSet] = useState(false);
+  const [currentVideoTime, setCurrentVideoTime] = useState(0);
 
   useEffect(() => {
     // Kiểm tra user và token từ localStorage
@@ -228,6 +276,23 @@ const MovieDetail = () => {
     fetchMovie();
     fetchComments();
   }, [id]);
+
+  useEffect(() => {
+    if (location.state?.lastWatchedTime) {
+      setLastWatchedTime(location.state.lastWatchedTime);
+    }
+    if (location.state?.autoPlay) {
+      setAutoPlay(true);
+      setShowVideo(true);
+    }
+  }, [location.state]);
+
+  useEffect(() => {
+    if (videoRef && lastWatchedTime > 0 && !isTimeSet) {
+      videoRef.currentTime = lastWatchedTime;
+      setIsTimeSet(true);
+    }
+  }, [videoRef, lastWatchedTime, isTimeSet]);
 
   const fetchMovie = async () => {
     try {
@@ -285,6 +350,30 @@ const MovieDetail = () => {
     }
   };
 
+  const handleTimeUpdate = (e) => {
+    setCurrentVideoTime(e.target.currentTime);
+  };
+
+  const handleCloseVideo = async () => {
+    if (user && currentVideoTime > 0) {
+      try {
+        await axios.post('http://localhost:5000/api/watch/history', {
+          userId: user._id,
+          movieId: id,
+          lastWatchedTime: currentVideoTime
+        }, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+      } catch (error) {
+        console.error('Error updating watch history:', error);
+      }
+    }
+    setShowVideo(false);
+    setIsTimeSet(false);
+  };
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -312,7 +401,7 @@ const MovieDetail = () => {
             </Metadata>
             <Description>{movie.description}</Description>
             <ButtonGroup>
-              <Button>
+              <Button onClick={() => setShowVideo(true)}>
                 <FaPlay /> Xem phim
               </Button>
               <Button>
@@ -322,6 +411,23 @@ const MovieDetail = () => {
           </InfoContainer>
         </MovieContent>
       </MovieHero>
+
+      {showVideo && (
+        <VideoModal>
+          <VideoContainer>
+            <CloseButton onClick={handleCloseVideo}>×</CloseButton>
+            <VideoPlayer 
+              ref={setVideoRef}
+              src={movie.trailerUrl} 
+              controls 
+              autoPlay={autoPlay}
+              onTimeUpdate={handleTimeUpdate}
+              onEnded={() => setIsTimeSet(false)}
+            />
+          </VideoContainer>
+        </VideoModal>
+      )}
+
       <MovieDetails>
         <Section>
           <SectionTitle>Thông tin phim</SectionTitle>
